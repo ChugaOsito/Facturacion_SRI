@@ -31,23 +31,17 @@
 
             </h:form>
             
-            <h:dataTable value="#{facturar.listarXMLsyEstado('\\OneDrive\\Documentos\\Facturas\\Aceptadas')}" var="archivo">
-                <h:column>
-                    
-        <f:facet name="header">
-                Facturas Enviadas
-                
-            </f:facet>
-              
-             
-              #{archivo}
-               
-               
-        
-                    
-                   
-                    </h:column>
-            </h:dataTable>
+   
+            
+            <p:dataTable var="entry" value="#{facturar.listarXMLsyEstado('\\OneDrive\\Documentos\\Facturas\\Aceptadas')}">
+            <p:column headerText="Comprobante">
+                <h:outputText value="${entry.key}" />
+            </p:column>
+
+            <p:column headerText="Estado">
+                <h:outputText value="${entry.value}" />
+            </p:column>
+        </p:dataTable>
             
                <h:dataTable value="#{facturar.listarXMLs('\\OneDrive\\Documentos\\Facturas\\Rechazadas')}" var="archivo">
                 <h:column>

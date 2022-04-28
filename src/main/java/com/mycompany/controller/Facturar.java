@@ -6,6 +6,7 @@
 package com.mycompany.controller;
 import autorizacion.ws.sri.gob.ec.Autorizacion;
 import autorizacion.ws.sri.gob.ec.AutorizacionComprobantesOfflineService;
+import com.gadm.tulcan.firmarpdf.Funcion_Firmarpdf;
 import java.text.SimpleDateFormat;
 import java.io.*;
 import java.io.File;
@@ -24,6 +25,9 @@ import recepcion.ws.sri.gob.ec.RecepcionComprobantesOfflineService;
 import java.io.File;
 import java.io.IOException;
 import static java.lang.System.out;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.KeyStoreException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -54,17 +58,36 @@ public class Facturar implements Serializable {
     @WebServiceRef(wsdlLocation = "WEB-INF/wsdl/celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline.wsdl")
     private AutorizacionComprobantesOfflineService service_1;
 
+  
     @WebServiceRef(wsdlLocation = "WEB-INF/wsdl/celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline.wsdl")
     private RecepcionComprobantesOfflineService service;
      public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_RED = "\u001B[31m";
 private String PathFacturas= "C:\\Users\\chuga\\OneDrive\\Documentos\\Facturas\\"; 
   
-    public void enviar() throws IOException{
-        
+    public void enviar() throws IOException,KeyStoreException, Exception{
         String[] facturas=listarXMLs("\\OneDrive\\Documentos\\Facturas\\Generadas");
-        System.out.println("Archivos a enviar");
+        //Inicio firma electronica
+        for (int i=0; i< facturas.length; i++) {
+        Funcion_Firmarpdf comprobar=new Funcion_Firmarpdf();
+       
         
+        if( comprobar.Invocador(PathFacturas+"Generadas\\"+facturas[i], "C:\\Users\\chuga\\OneDrive\\Documentos\\Firma Electronica\\kevin_alexander_chuga_portilla.p12", "Contrasena del certificado", 0, 1, 1 )==false){
+       }else{
+        File file = new File(PathFacturas+"Generadas\\"+facturas[i]);
+		String targetDirectory = PathFacturas+"Sin Firmar\\";
+ 
+		if (file.renameTo(new File(targetDirectory+ file.getName()))) {
+			System.out.println("El archivo se a movido a: " + targetDirectory);
+		} else {
+			System.out.println("Fallo al mover el archivo");
+		}
+        }
+        }        
+//Fin firma electronica 
+       
+        System.out.println("Archivos a enviar");
+        facturas=listarXMLs("\\OneDrive\\Documentos\\Facturas\\Generadas");
          for (int i=0; i< facturas.length; i++) {
         System.out.println(facturas[i]);
       }
@@ -119,7 +142,7 @@ private String PathFacturas= "C:\\Users\\chuga\\OneDrive\\Documentos\\Facturas\\
 
          }
   
-FacesContext.getCurrentInstance().getExternalContext().redirect("http://localhost:8080/Facturacion/");
+FacesContext.getCurrentInstance().getExternalContext().redirect("http://localhost:8080/Facturacion_SRI/");
     }
     
     public static byte[] XMLaByte(File file)
@@ -221,9 +244,13 @@ return listado;/*
   */
     }
     
+    
       public  Map listarXMLsyEstado(String Ubicacion){
+         
+    
      Map FacturayEstado = new HashMap();
      String Estado;
+     String clv="";
         
     //Carpeta del usuario "\\OneDrive\\Documentos\\NetBeansProjects\\Facturacion\\Facturacion\\src\\main\\resources\\Facturas\\Generadas"
     String sCarpAct = System.getProperty("user.home")+ Ubicacion;
@@ -259,57 +286,93 @@ return listado;/*
                 if (nodo.getNodeType() == Node.ELEMENT_NODE) {
                     Element element = (Element) nodo;
                    // System.out.println("id: " + element.getAttribute("id"));
-                    System.out.println("Clave de Acceso: " + element.getElementsByTagName("claveAcceso").item(0).getTextContent());
                     
-                    
-                    try { // Call Web Service Operation
-                        autorizacion.ws.sri.gob.ec.AutorizacionComprobantesOffline port = service_1.getAutorizacionComprobantesOfflinePort();
-                        // TODO initialize WS operation arguments here
-                        java.lang.String claveAccesoComprobante = element.getElementsByTagName("claveAcceso").item(0).getTextContent();
-                        // TODO process result here
-                        autorizacion.ws.sri.gob.ec.RespuestaComprobante result = port.autorizacionComprobante(claveAccesoComprobante);
-                        System.out.println("Result = "+port.autorizacionComprobante(claveAccesoComprobante).getAutorizaciones().getAutorizacion().isEmpty());
-                        
-                           for (Autorizacion item : result.getAutorizaciones().getAutorizacion()) {
-          System.out.println("Este es el ultimo "+item.getEstado());
-        
-          } 
-                       
-                  Autorizacion aut =new Autorizacion();
-                   System.out.println("Result  Estado= "+aut.getEstado());
-                        FacturayEstado.put(listado[i],result);
-                        
-                    } catch (Exception ex) {
-                        System.out.println("ERROR >>>>"+ ex);
-                        FacturayEstado.put(listado[i],"Entro a excepcion");
-                    }
-                    
-                    
-                    
-                   
-
-            
-
-                    
-                    
-                   
-
-
-                    
-                  
-                    
-                    
+                clv=element.getElementsByTagName("claveAcceso").item(0).getTextContent();
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    
+     
+     
+     
+     
+       String ClaveAcceso=clv;
+
+    /* place your xml request from soap ui below with necessary changes in parameters*/
+    
+    String xml=" <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ec=\"http://ec.gob.sri.ws.autorizacion\">\n" +
+"        <soapenv:Header/>\n" +
+"        <soapenv:Body>\n" +
+"        <ec:autorizacionComprobante>\n" +
+"      <claveAccesoComprobante>"+ClaveAcceso+"</claveAccesoComprobante>\n" +
+"        </ec:autorizacionComprobante>\n" +
+"        </soapenv:Body>\n" +
+"        </soapenv:Envelope>";
+            
+            /*"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ws=\"http://www.YourUrlAsPerWsdl.com/\">\r\n" + 
+                 "   <soapenv:Header/>\r\n" + 
+                 "   <soapenv:Body>\r\n" + 
+                 "      <ws:callRest>\r\n" + 
+                 "         <name>"+"Hello"+"</name>\r\n" + 
+                 "         <address>"+address+"</address>\r\n" + 
+                 "      </ws:callRest>\r\n" + 
+                 "   </soapenv:Body>\r\n" + 
+                 "</soapenv:Envelope>";*/
+            String responseF=callSoapService(xml);
+            FacturayEstado.put(listado[i], responseF);
+            System.out.println(responseF);
+    
+
+
+     
      }
     //fIN oBTENER ESTADO
     System.out.println("INFORMACION PARA LA VISTA "+ FacturayEstado);
 return FacturayEstado;
     }
+      
+      
+      
+      static String callSoapService(String soapRequest) {
+    try {
+     String url = "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl"; // replace your URL here
+     URL obj = new URL(url);
+     HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+     
+     // change these values as per soapui request on top left of request, click on RAW, you will find all the headers
+     con.setRequestMethod("POST");
+     con.setRequestProperty("Content-Type","text/xml; charset=utf-8"); 
+     con.setDoOutput(true);
+     DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+     wr.writeBytes(soapRequest);
+     wr.flush();
+     wr.close();
+     String responseStatus = con.getResponseMessage();
+     System.out.println(responseStatus);
+     BufferedReader in = new BufferedReader(new InputStreamReader(
+     con.getInputStream()));
+     String inputLine;
+     StringBuffer response = new StringBuffer();
+     while ((inputLine = in.readLine()) != null) {
+         response.append(inputLine);
+     }
+     in.close();
+     
+     // You can play with response which is available as string now:
+     String finalvalue= response.toString();
+     
+     // or you can parse/substring the required tag from response as below based your response code
+     finalvalue= finalvalue.substring(finalvalue.indexOf("<estado>")+8,finalvalue.indexOf("</estado>")); 
+     
+     return finalvalue;
+     } 
+    catch (Exception e) {
+        return e.getMessage();
+    }
     
+      }
     
     
 }
