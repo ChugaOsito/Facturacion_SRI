@@ -17,11 +17,13 @@
     <dependencies>
         
  
+<!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
 <dependency>
-	<groupId>org.primefaces</groupId>
-	<artifactId>primefaces</artifactId>
-	<version>8.0</version>
+    <groupId>org.primefaces</groupId>
+    <artifactId>primefaces</artifactId>
+    <version>11.0.0</version>
 </dependency>
+
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>

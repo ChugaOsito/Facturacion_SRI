@@ -66,13 +66,16 @@ public class Facturar implements Serializable {
 private String PathFacturas= "C:\\Users\\chuga\\OneDrive\\Documentos\\Facturas\\"; 
   
     public void enviar() throws IOException,KeyStoreException, Exception{
+        FirmaElectronicaBean datos =new FirmaElectronicaBean ();
         String[] facturas=listarXMLs("\\OneDrive\\Documentos\\Facturas\\Generadas");
-        //Inicio firma electronica
+        //Inicio firma electronica/
+        
         for (int i=0; i< facturas.length; i++) {
         Funcion_Firmarpdf comprobar=new Funcion_Firmarpdf();
-       
+        datos.Facturacion();
+      
         
-        if( comprobar.Invocador(PathFacturas+"Generadas\\"+facturas[i], "C:\\Users\\chuga\\OneDrive\\Documentos\\Firma Electronica\\kevin_alexander_chuga_portilla.p12", "Contrasena del certificado", 0, 1, 1 )==false){
+        if( comprobar.Invocador(PathFacturas+"Generadas\\"+facturas[i], datos.getCertificado(),datos.getClave(), 0, 1, 1 )==false){
        }else{
         File file = new File(PathFacturas+"Generadas\\"+facturas[i]);
 		String targetDirectory = PathFacturas+"Sin Firmar\\";
@@ -83,7 +86,8 @@ private String PathFacturas= "C:\\Users\\chuga\\OneDrive\\Documentos\\Facturas\\
 			System.out.println("Fallo al mover el archivo");
 		}
         }
-        }        
+        }      
+        
 //Fin firma electronica 
        
         System.out.println("Archivos a enviar");
@@ -98,7 +102,7 @@ private String PathFacturas= "C:\\Users\\chuga\\OneDrive\\Documentos\\Facturas\\
 
         try { // Call Web Service Operation
             recepcion.ws.sri.gob.ec.RecepcionComprobantesOffline port = service.getRecepcionComprobantesOfflinePort();
-            // TODO initialize WS operation arguments here
+           
             
             byte[] xml = new byte[9999];
            xml= XMLaByte(path);
@@ -181,7 +185,7 @@ FacesContext.getCurrentInstance().getExternalContext().redirect("http://localhos
     String[] listado = carpeta.list();
     if (listado == null || listado.length == 0) {
       System.out.println("No hay elementos dentro de la carpeta actual");
-      return null;
+      return listado;
     }
     else {
       for (int i=0; i< listado.length; i++) {
@@ -263,7 +267,7 @@ return listado;/*
     String[] listado = carpeta.list();
     if (listado == null || listado.length == 0) {
       System.out.println("No hay elementos dentro de la carpeta actual");
-      return null;
+      return FacturayEstado;
     }
     else {
       for (int i=0; i< listado.length; i++) {

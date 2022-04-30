@@ -8,33 +8,44 @@
     <h:head>
         <title>Facturacion Electronica</title>
     </h:head>
-    <h:body >
-        Facturacion Electronica
+    <h:body  >
+        <b>FACTURACIÓN ELECTRÓNICA</b>
          <br></br>
         <h:body>
-            <h:dataTable
-            value="#{facturar.listarXMLs('\\OneDrive\\Documentos\\Facturas\\Generadas')}" 
-            var="archivo">
-                <h:column>
-                    
-        <f:facet name="header">
-                Facturas Generadas
-            </f:facet>
-                #{archivo}
-        </h:column>
-            </h:dataTable>
-            
-            <h:form>
-                <p:commandButton value="Enviar"  actionListener="#{facturar.enviar()}"/>
-                <br></br>
+            <br></br>
+              <h:form enctype="multipart/form-data">
+                  
+                  <h:outputLabel for="certificado" value="Ingrese Certificado de Firma Electronica" />
+                  <br></br>
+                  
+                  <p:fileUpload  id="certificado" value="#{firmaElectronicaBean.uploadedFile}" mode="simple" />
+                  
+                  <br></br><br></br>
+                
+                              <h:outputLabel for="clave" value="Ingrese contraseña de Firma Electronica" />
+                        <br></br>      
+                        <h:inputSecret id="clave" value="#{firmaElectronicaBean.clave}"></h:inputSecret>       
+                  <br></br>
+                  <br></br>
+                  <h:commandButton value="Enviar"  actionListener="#{facturar.enviar()}" />
+                <br></br>                <br></br>
               
 
             </h:form>
             
+              <p:dataTable var="entry" value="#{facturar.listarXMLs('\\OneDrive\\Documentos\\Facturas\\Generadas')}">
+            <p:column headerText="Comprobantes Generados">
+                <h:outputText value="${entry}" />
+            </p:column>
+        </p:dataTable>
+            
+          
+          
+            
    
             
             <p:dataTable var="entry" value="#{facturar.listarXMLsyEstado('\\OneDrive\\Documentos\\Facturas\\Aceptadas')}">
-            <p:column headerText="Comprobante">
+            <p:column headerText="Comprobantes Enviados">
                 <h:outputText value="${entry.key}" />
             </p:column>
 
@@ -43,15 +54,14 @@
             </p:column>
         </p:dataTable>
             
-               <h:dataTable value="#{facturar.listarXMLs('\\OneDrive\\Documentos\\Facturas\\Rechazadas')}" var="archivo">
-                <h:column>
-                    
-        <f:facet name="header">
-                Facturas Rechazadas
-            </f:facet>
-                #{archivo}
-        </h:column>
-            </h:dataTable>
+            <p:dataTable var="entry" value="#{facturar.listarXMLs('\\OneDrive\\Documentos\\Facturas\\Rechazadas')}">
+            <p:column headerText="Comprobantes Rechazados">
+                <h:outputText value="${entry}" />
+            </p:column>
+        </p:dataTable>
+            
+               
+            
             
         </h:body>
     </h:body>
