@@ -60,8 +60,8 @@ public class Funcion_Firmarpdf {
 FILE = Documento; 
 ARCHIVO=Certificado;
 
-          firmarDocumento(FILE);
-      return true;
+         
+      return  firmarDocumento(FILE);
       }
       private static Properties parametros() throws IOException {
         //QR

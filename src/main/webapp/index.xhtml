@@ -5,13 +5,29 @@
       xmlns:p="http://primefaces.org/ui"
       xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
+    
     <h:head>
         <title>Facturacion Electronica</title>
     </h:head>
+     <style>
+            .loader {
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background: url('https://i.pinimg.com/originals/b9/19/6d/b9196dd9dd7789589bad1a3368ad5dd8.gif') 50% 50% no-repeat rgb(249,249,249);
+    opacity: .8;
+}
+        </style>
     <h:body  >
+        <div class="loader"></div>
+      
+        
         <b>FACTURACIÓN ELECTRÓNICA</b>
          <br></br>
-        <h:body>
+        
             <br></br>
               <h:form enctype="multipart/form-data">
                   
@@ -27,13 +43,13 @@
                         <h:inputSecret id="clave" value="#{firmaElectronicaBean.clave}"></h:inputSecret>       
                   <br></br>
                   <br></br>
-                  <h:commandButton value="Enviar"  actionListener="#{facturar.enviar()}" />
+                  <h:commandButton value="Enviar" onclick="Loading();"  actionListener="#{facturar.enviar()}" />
                 <br></br>                <br></br>
               
 
             </h:form>
             
-              <p:dataTable var="entry" value="#{facturar.listarXMLs('\\OneDrive\\Documentos\\Facturas\\Generadas')}">
+              <p:dataTable var="entry" value="#{facturar.listarXMLs('/Facturas/Generadas')}">
             <p:column headerText="Comprobantes Generados">
                 <h:outputText value="${entry}" />
             </p:column>
@@ -44,7 +60,7 @@
             
    
             
-            <p:dataTable var="entry" value="#{facturar.listarXMLsyEstado('\\OneDrive\\Documentos\\Facturas\\Aceptadas')}">
+            <p:dataTable var="entry" value="#{facturar.listarXMLsyEstado('/Facturas/Aceptadas')}">
             <p:column headerText="Comprobantes Enviados">
                 <h:outputText value="${entry.key}" />
             </p:column>
@@ -54,7 +70,7 @@
             </p:column>
         </p:dataTable>
             
-            <p:dataTable var="entry" value="#{facturar.listarXMLs('\\OneDrive\\Documentos\\Facturas\\Rechazadas')}">
+            <p:dataTable var="entry" value="#{facturar.listarXMLs('/Facturas/Rechazadas')}">
             <p:column headerText="Comprobantes Rechazados">
                 <h:outputText value="${entry}" />
             </p:column>
@@ -64,6 +80,17 @@
             
             
         </h:body>
-    </h:body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script type="text/javascript">
+        
+$(window).load(function() {
+    $(".loader").fadeOut("slow");
+});
+</script>
+    <script>
+        function Loading() {
+              $(".loader").fadeIn("slow");
+        }
+    </script>
 </html>
 

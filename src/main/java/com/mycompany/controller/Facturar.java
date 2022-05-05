@@ -63,11 +63,12 @@ public class Facturar implements Serializable {
     private RecepcionComprobantesOfflineService service;
      public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_RED = "\u001B[31m";
-private String PathFacturas= "C:\\Users\\chuga\\OneDrive\\Documentos\\Facturas\\"; 
+private String PathFacturas= System.getProperty("user.dir")+"/Facturas/"; 
   
     public void enviar() throws IOException,KeyStoreException, Exception{
+        System.out.println("UBICACION USER DIR==="+System.getProperty("user.dir"));
         FirmaElectronicaBean datos =new FirmaElectronicaBean ();
-        String[] facturas=listarXMLs("\\OneDrive\\Documentos\\Facturas\\Generadas");
+        String[] facturas=listarXMLs("/Facturas/Generadas");
         //Inicio firma electronica/
         
         for (int i=0; i< facturas.length; i++) {
@@ -75,30 +76,40 @@ private String PathFacturas= "C:\\Users\\chuga\\OneDrive\\Documentos\\Facturas\\
         datos.Facturacion();
       
         
-        if( comprobar.Invocador(PathFacturas+"Generadas\\"+facturas[i], datos.getCertificado(),datos.getClave(), 0, 1, 1 )==false){
-       }else{
-        File file = new File(PathFacturas+"Generadas\\"+facturas[i]);
-		String targetDirectory = PathFacturas+"Sin Firmar\\";
+        if( comprobar.Invocador(PathFacturas+"Generadas/"+facturas[i], datos.getCertificado(),datos.getClave(), 0, 1, 1 )==true){
+            
+           File file = new File(PathFacturas+"Generadas/"+facturas[i]);
+		String targetDirectory = PathFacturas+"Sin Firmar/";
  
 		if (file.renameTo(new File(targetDirectory+ file.getName()))) {
 			System.out.println("El archivo se a movido a: " + targetDirectory);
 		} else {
 			System.out.println("Fallo al mover el archivo");
 		}
+                
+            
+       }else{
+        FacesContext.getCurrentInstance().getExternalContext().redirect("http://localhost:8080/Facturacion_SRI/");
+           
+            return;
         }
         }      
-        
+        File fichero = new File(datos.getCertificado());
+        if (fichero.delete())
+   System.out.println("El fichero ha sido borrado satisfactoriamente");
+else
+   System.out.println("El fichero no puede ser borrado");
 //Fin firma electronica 
        
         System.out.println("Archivos a enviar");
-        facturas=listarXMLs("\\OneDrive\\Documentos\\Facturas\\Generadas");
+        facturas=listarXMLs("/Facturas/Generadas");
          for (int i=0; i< facturas.length; i++) {
         System.out.println(facturas[i]);
       }
          
      
          for (int i=0; i< facturas.length; i++) {
-        File path = new File(PathFacturas+"Generadas\\"+facturas[i]);
+        File path = new File(PathFacturas+"Generadas/"+facturas[i]);
 
         try { // Call Web Service Operation
             recepcion.ws.sri.gob.ec.RecepcionComprobantesOffline port = service.getRecepcionComprobantesOfflinePort();
@@ -114,8 +125,8 @@ private String PathFacturas= "C:\\Users\\chuga\\OneDrive\\Documentos\\Facturas\\
             
             System.out.println(facturas[i]+" = "+result.getEstado());
             if(result.getEstado().equals("RECIBIDA")){
-                File file = new File(PathFacturas+"Generadas\\"+facturas[i]);
-		String targetDirectory = PathFacturas+"Aceptadas\\";
+                File file = new File(PathFacturas+"Generadas/"+facturas[i]);
+		String targetDirectory = PathFacturas+"Aceptadas/";
  
 		if (file.renameTo(new File(targetDirectory+ file.getName()))) {
 			System.out.println("El archivo se a movido a: " + targetDirectory);
@@ -126,8 +137,8 @@ private String PathFacturas= "C:\\Users\\chuga\\OneDrive\\Documentos\\Facturas\\
             }else
             {
                 
-                    File file = new File(PathFacturas+"Generadas\\"+facturas[i]);
-		String targetDirectory = PathFacturas+"Rechazadas\\";
+                    File file = new File(PathFacturas+"Generadas/"+facturas[i]);
+		String targetDirectory = PathFacturas+"Rechazadas/";
  
 		if (file.renameTo(new File(targetDirectory+ file.getName()))) {
 			System.out.println("El Archivo se ha movido a: " + targetDirectory);
@@ -173,9 +184,10 @@ FacesContext.getCurrentInstance().getExternalContext().redirect("http://localhos
     }
     public  String[] listarXMLs(String Ubicacion){
      
-        
+            System.out.println("UBICACION USER DIR==="+System.getProperty("user.dir"));
+                System.out.println("UBICACION USER HOME==="+System.getProperty("user.home"));
     //Carpeta del usuario "\\OneDrive\\Documentos\\NetBeansProjects\\Facturacion\\Facturacion\\src\\main\\resources\\Facturas\\Generadas"
-    String sCarpAct = System.getProperty("user.home")+ Ubicacion;
+    String sCarpAct = System.getProperty("user.dir")+ Ubicacion;
     //System.out.println("Carpeta del usuario = " + sCarpAct);
 
     //Listemos todas las carpetas y archivos de la carpeta actual
@@ -257,7 +269,7 @@ return listado;/*
      String clv="";
         
     //Carpeta del usuario "\\OneDrive\\Documentos\\NetBeansProjects\\Facturacion\\Facturacion\\src\\main\\resources\\Facturas\\Generadas"
-    String sCarpAct = System.getProperty("user.home")+ Ubicacion;
+    String sCarpAct = System.getProperty("user.dir")+ Ubicacion;
     //System.out.println("Carpeta del usuario = " + sCarpAct);
 
     //Listemos todas las carpetas y archivos de la carpeta actual
@@ -277,7 +289,7 @@ return listado;/*
     //Obtener ESTADO 
      for (int i=0; i< listado.length; i++) {
      try {
-            File archivo = new File(PathFacturas+"Aceptadas\\"+listado[i]);
+            File archivo = new File(PathFacturas+"Aceptadas/"+listado[i]);
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
             Document document = documentBuilder.parse(archivo);

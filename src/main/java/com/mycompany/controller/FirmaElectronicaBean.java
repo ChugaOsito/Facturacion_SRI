@@ -44,7 +44,7 @@ public void Facturacion(){
 
         System.out.println("Uploaded file name : " + uploadedFile.getFileName());
 
-Cert=saveUploadedFile("C:\\Users\\chuga\\OneDrive\\Documentos\\Facturas\\Certificados",uploadedFile);
+Cert=saveUploadedFile(System.getProperty("user.dir")+"/Facturas/Certificados",uploadedFile);
 setCertificado(Cert);
 
 }
