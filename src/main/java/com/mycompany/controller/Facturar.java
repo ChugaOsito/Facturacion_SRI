@@ -6,7 +6,7 @@
 package com.mycompany.controller;
 import autorizacion.ws.sri.gob.ec.Autorizacion;
 import autorizacion.ws.sri.gob.ec.AutorizacionComprobantesOfflineService;
-import com.gadm.tulcan.firmarpdf.Funcion_Firmarpdf;
+
 import java.text.SimpleDateFormat;
 import java.io.*;
 import java.io.File;
@@ -44,6 +44,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import sri.XAdESBESSignature;
 
 
 /**
@@ -71,14 +72,17 @@ private String PathFacturas= System.getProperty("user.dir")+"/Facturas/";
         String[] facturas=listarXMLs("/Facturas/Generadas");
         //Inicio firma electronica/
         
-        for (int i=0; i< facturas.length; i++) {
-        Funcion_Firmarpdf comprobar=new Funcion_Firmarpdf();
-        datos.Facturacion();
-      
+         datos.Facturacion();
         
-        if( comprobar.Invocador(PathFacturas+"Generadas/"+facturas[i], datos.getCertificado(),datos.getClave(), 0, 1, 1 )==true){
+        for (int i=0; i< facturas.length; i++) {
+        
+       
+      //Inicio Fimra XADESBESS
+         try{
+             
             
-           File file = new File(PathFacturas+"Generadas/"+facturas[i]);
+        XAdESBESSignature.firmar(PathFacturas+"Generadas/"+facturas[i], datos.getCertificado(), datos.getClave(), PathFacturas+"Generadas/","signed-"+facturas[i] );
+      File file = new File(PathFacturas+"Generadas/"+facturas[i]);
 		String targetDirectory = PathFacturas+"Sin Firmar/";
  
 		if (file.renameTo(new File(targetDirectory+ file.getName()))) {
@@ -88,17 +92,17 @@ private String PathFacturas= System.getProperty("user.dir")+"/Facturas/";
 		}
                 
             
-       }else{
+         }catch(Exception e){
+        System.out.println("Error: " + e);
         FacesContext.getCurrentInstance().getExternalContext().redirect("http://localhost:8080/Facturacion_SRI/");
            
             return;
-        }
+        
+    }
+         //Fin Fimra XADESBESS
+       
         }      
-        File fichero = new File(datos.getCertificado());
-        if (fichero.delete())
-   System.out.println("El fichero ha sido borrado satisfactoriamente");
-else
-   System.out.println("El fichero no puede ser borrado");
+        
 //Fin firma electronica 
        
         System.out.println("Archivos a enviar");
@@ -148,9 +152,18 @@ else
             
                 
             }
-            
+            File fichero = new File(datos.getCertificado());
+        if (fichero.delete())
+   System.out.println("El fichero ha sido borrado satisfactoriamente");
+else
+   System.out.println("El fichero no puede ser borrado");
             
         } catch (Exception ex) {
+            File fichero = new File(datos.getCertificado());
+        if (fichero.delete())
+   System.out.println("El fichero ha sido borrado satisfactoriamente");
+else
+   System.out.println("El fichero no puede ser borrado");
             // TODO handle custom exceptions here
              System.out.println(ex);
         }

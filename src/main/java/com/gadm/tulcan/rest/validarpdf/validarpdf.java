@@ -4,7 +4,7 @@ package com.gadm.tulcan.rest.validarpdf;
 import com.gadm.tulcan.rest.certificados.certificados;
 import com.gadm.tulcan.rest.modelo.EntradasValidarpdf;
 import com.gadm.tulcan.rest.modelo.SalidasValidarpdf;
-import com.gadm.tulcan.validarpdf.Funcion_Validarpdf;
+
 import java.security.KeyStoreException;
 import java.util.List;
 
@@ -31,23 +31,14 @@ public class validarpdf {
     public  List<SalidasValidarpdf> getDatos(EntradasValidarpdf datos)throws KeyStoreException, Exception{
          System.out.println("Este es el resultado");
         EntradasValidarpdf modelo= new EntradasValidarpdf();
-        SalidasValidarpdf validar=new SalidasValidarpdf();
+        
         certificados firmas = new certificados();
-        Funcion_Validarpdf comprobar=new Funcion_Validarpdf();
+      
         firmas.Encerar();
       List<SalidasValidarpdf> salida=null;
         modelo=datos;
        
-       if(comprobar.Invocador(modelo.getUbicacion())==false){
-       
-       salida=null;
-        
-       }else{
-           
-           System.out.println(firmas.getListado());
-       salida=firmas.getListado();
-       
-       }
+    
        
        
       

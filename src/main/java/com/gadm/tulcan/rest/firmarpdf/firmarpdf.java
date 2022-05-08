@@ -3,7 +3,7 @@ package com.gadm.tulcan.rest.firmarpdf;
 //Eliminar estos imports
 import com.gadm.tulcan.rest.modelo.EntradasFirmarpdf;
 import com.gadm.tulcan.rest.modelo.SalidasFirmarpdf;
-import com.gadm.tulcan.firmarpdf.Funcion_Firmarpdf;
+
 import java.security.KeyStoreException;
 //eliminar estos imports
 import javax.ws.rs.Consumes;
@@ -37,19 +37,12 @@ public class firmarpdf {
         System.out.println(datos.getPagina());
         System.out.println(datos.getH());
         System.out.println(datos.getV());
-        SalidasFirmarpdf firmar=new SalidasFirmarpdf();
-        Funcion_Firmarpdf comprobar=new Funcion_Firmarpdf();
+        
+        
         SalidasFirmarpdf salida=null;
        
        
-       if(comprobar.Invocador(entradas.getDocumentopdf(), entradas.getArchivop12(), entradas.getContrasena(), entradas.getPagina(), entradas.getH(), entradas.getV() )==false){
-       
-       salida=null;
-       
-       }else{
-       salida=firmar;
-       
-       }
+      
        
        
       
