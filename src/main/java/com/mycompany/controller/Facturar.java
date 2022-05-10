@@ -94,7 +94,7 @@ private String PathFacturas= System.getProperty("user.dir")+"/Facturas/";
             
          }catch(Exception e){
         System.out.println("Error: " + e);
-        FacesContext.getCurrentInstance().getExternalContext().redirect("http://localhost:8080/Facturacion_SRI/");
+        FacesContext.getCurrentInstance().getExternalContext().redirect("http://aguasis.online:33/Facturacion_SRI/");
            
             return;
         
@@ -170,7 +170,7 @@ else
 
          }
   
-FacesContext.getCurrentInstance().getExternalContext().redirect("http://localhost:8080/Facturacion_SRI/");
+FacesContext.getCurrentInstance().getExternalContext().redirect("http://aguasis.online:33/Facturacion_SRI/");
     }
     
     public static byte[] XMLaByte(File file)

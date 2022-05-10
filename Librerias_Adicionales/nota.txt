@@ -1,0 +1,2 @@
+El codigo para firmar comprobantes electronicos y las librerias adicionales usadas han sido extraidos del siguiente proyecto:
+https://github.com/joselo/sri
