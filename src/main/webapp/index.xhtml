@@ -70,9 +70,13 @@
             </p:column>
         </p:dataTable>
             
-            <p:dataTable var="entry" value="#{facturar.listarXMLs('/Facturas/Rechazadas')}">
-            <p:column headerText="Comprobantes Rechazados">
-                <h:outputText value="${entry}" />
+             <p:dataTable var="entry" value="#{facturar.listarXMLsRechazados('/Facturas/Rechazadas/')}">
+            <p:column headerText="Comprobantes Enviados">
+                <h:outputText value="${entry.key}" />
+            </p:column>
+
+            <p:column headerText="Razon de Rechazo">
+                <h:outputText value="${entry.value}" />
             </p:column>
         </p:dataTable>
             

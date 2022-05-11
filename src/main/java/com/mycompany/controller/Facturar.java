@@ -49,6 +49,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -133,7 +134,7 @@ private String PathFacturas= System.getProperty("user.dir")+"/Facturas/";
             
             
             
-            System.out.println(facturas[i]+" = "+result.getEstado());
+            System.out.println(facturas[i]+" = "+result.getEstado() );
             if(result.getEstado().equals("RECIBIDA")){
                 MoverArchivo(PathFacturas+"Generadas/"+facturas[i],PathFacturas+"Aceptadas/");            
             }else
@@ -174,6 +175,41 @@ FacesContext.getCurrentInstance().getExternalContext().redirect(pagina_principal
   
         // Returning above byte array
         return arr;
+    }
+    
+    public  Map listarXMLsRechazados(String Ubicacion) throws IOException{
+        Map FacturayEstado = new HashMap();
+        String[] facturas=listarXMLs(Ubicacion);
+                
+     
+         for (int i=0; i< facturas.length; i++) {
+        File path = new File(PathFacturas+"Rechazadas/"+facturas[i]);
+
+     
+            
+            byte[] comprobante = new byte[9999];
+           comprobante= XMLaByte(path);
+        
+         String xml=" <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ec=\"http://ec.gob.sri.ws.recepcion\">\n" +
+"        <soapenv:Header/>\n" +
+"        <soapenv:Body>\n" +
+"        <ec:validarComprobante>\n" +
+"      <xml>\n" +
+Base64.getEncoder().encodeToString(comprobante)+
+"    </xml>\n" +
+"        </ec:validarComprobante>\n" +
+"        </soapenv:Body>\n" +
+"        </soapenv:Envelope>";
+         System.out.println(xml);
+            String responseF=SoapRequest(xml, "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline?wsdl");
+            System.out.println(responseF);
+              responseF= responseF.substring(responseF.indexOf("</identificador><mensaje>")+25,responseF.indexOf("</mensaje>")); 
+            FacturayEstado.put(facturas[i], responseF);
+          
+    
+     
+     }
+      return FacturayEstado;
     }
     public  String[] listarXMLs(String Ubicacion){
      
@@ -316,7 +352,13 @@ return FacturayEstado;
      String finalvalue= response.toString();
      
      // or you can parse/substring the required tag from response as below based your response code
-     finalvalue= finalvalue.substring(finalvalue.indexOf("<estado>")+8,finalvalue.indexOf("</estado>")); 
+     if(finalvalue.substring(finalvalue.indexOf("<estado>")+8,finalvalue.indexOf("</estado>")).equals("AUTORIZADO")){
+     finalvalue= finalvalue.substring(finalvalue.indexOf("<estado>")+8,finalvalue.indexOf("</estado>"));     
+     }else{
+     finalvalue= finalvalue.substring(finalvalue.indexOf("<estado>")+8,finalvalue.indexOf("</estado>"))+": "
+             +finalvalue.substring(finalvalue.indexOf("</identificador><mensaje>")+25,finalvalue.indexOf("</mensaje>"));     
+     }
+     
      
      return finalvalue;
      } 
@@ -383,5 +425,46 @@ return FacturayEstado;
             
         }
     }
+     
+     
+        static String SoapRequest(String soapRequest, String url) {
+    try {
+     //String url = "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl"; // replace your URL here
+     URL obj = new URL(url);
+     HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+     
+     // change these values as per soapui request on top left of request, click on RAW, you will find all the headers
+     con.setRequestMethod("POST");
+     con.setRequestProperty("Content-Type","text/xml; charset=utf-8"); 
+     con.setDoOutput(true);
+     DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+     wr.writeBytes(soapRequest);
+     wr.flush();
+     wr.close();
+     String responseStatus = con.getResponseMessage();
+     System.out.println(responseStatus);
+     BufferedReader in = new BufferedReader(new InputStreamReader(
+     con.getInputStream()));
+     String inputLine;
+     StringBuffer response = new StringBuffer();
+     while ((inputLine = in.readLine()) != null) {
+         response.append(inputLine);
+     }
+     in.close();
+     
+     // You can play with response which is available as string now:
+     String finalvalue= response.toString();
+     
+     // or you can parse/substring the required tag from response as below based your response code
+    
+     
+     
+     return finalvalue;
+     } 
+    catch (Exception e) {
+        return e.getMessage();
+    }
+    
+      }
     
 }
