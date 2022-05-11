@@ -45,6 +45,14 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import sri.XAdESBESSignature;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import org.primefaces.shaded.commons.io.FilenameUtils;
 
 
 /**
@@ -64,44 +72,42 @@ public class Facturar implements Serializable {
     private RecepcionComprobantesOfflineService service;
      public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_RED = "\u001B[31m";
+  private String pagina_principal= "http://localhost:8080/Facturacion_SRI/";
 private String PathFacturas= System.getProperty("user.dir")+"/Facturas/"; 
   
     public void enviar() throws IOException,KeyStoreException, Exception{
         System.out.println("UBICACION USER DIR==="+System.getProperty("user.dir"));
         FirmaElectronicaBean datos =new FirmaElectronicaBean ();
-        String[] facturas=listarXMLs("/Facturas/Generadas");
+        String[] comprimidos=listarXMLs("/Facturas/Generadas");
+         for (int i=0; i< comprimidos.length; i++) {
+         Descomprimir(PathFacturas+"Generadas/"+comprimidos[i],PathFacturas+"Generadas/");
+         }
         //Inicio firma electronica/
-        
+        String[] facturas=listarXMLs("/Facturas/Generadas");
          datos.Facturacion();
         
         for (int i=0; i< facturas.length; i++) {
-        
-       
-      //Inicio Fimra XADESBESS
-         try{
-             
-            
+           if(FilenameUtils.getExtension(PathFacturas+"Generadas/"+facturas[i]).equals("xml")) {
+            //Inicio Fimra XADESBESS
+         try{  
         XAdESBESSignature.firmar(PathFacturas+"Generadas/"+facturas[i], datos.getCertificado(), datos.getClave(), PathFacturas+"Generadas/","signed-"+facturas[i] );
-      File file = new File(PathFacturas+"Generadas/"+facturas[i]);
-		String targetDirectory = PathFacturas+"Sin Firmar/";
- 
-		if (file.renameTo(new File(targetDirectory+ file.getName()))) {
-			System.out.println("El archivo se a movido a: " + targetDirectory);
-		} else {
-			System.out.println("Fallo al mover el archivo");
-		}
-                
-            
-         }catch(Exception e){
+         }
+         catch(Exception e){
         System.out.println("Error: " + e);
-        FacesContext.getCurrentInstance().getExternalContext().redirect("http://aguasis.online:33/Facturacion_SRI/");
-           
+       
+        FacesContext.getCurrentInstance().getExternalContext().redirect(pagina_principal);
             return;
-        
     }
          //Fin Fimra XADESBESS
+           
+           }
+     
        
         }      
+        BorrarArchivo(datos.getCertificado());
+        for (int i=0; i< facturas.length; i++) {
+         MoverArchivo(PathFacturas+"Generadas/"+facturas[i],PathFacturas+"Sin Firmar/");
+        }
         
 //Fin firma electronica 
        
@@ -129,48 +135,22 @@ private String PathFacturas= System.getProperty("user.dir")+"/Facturas/";
             
             System.out.println(facturas[i]+" = "+result.getEstado());
             if(result.getEstado().equals("RECIBIDA")){
-                File file = new File(PathFacturas+"Generadas/"+facturas[i]);
-		String targetDirectory = PathFacturas+"Aceptadas/";
- 
-		if (file.renameTo(new File(targetDirectory+ file.getName()))) {
-			System.out.println("El archivo se a movido a: " + targetDirectory);
-		} else {
-			System.out.println("Fallo al mover el archivo");
-		}
-            
+                MoverArchivo(PathFacturas+"Generadas/"+facturas[i],PathFacturas+"Aceptadas/");            
             }else
             {
-                
-                    File file = new File(PathFacturas+"Generadas/"+facturas[i]);
-		String targetDirectory = PathFacturas+"Rechazadas/";
- 
-		if (file.renameTo(new File(targetDirectory+ file.getName()))) {
-			System.out.println("El Archivo se ha movido a: " + targetDirectory);
-		} else {
-			System.out.println("Fallo al mover el archivo");
-		}
-            
-                
+                  MoverArchivo(PathFacturas+"Generadas/"+facturas[i],PathFacturas+"Rechazadas/");             
             }
-            File fichero = new File(datos.getCertificado());
-        if (fichero.delete())
-   System.out.println("El fichero ha sido borrado satisfactoriamente");
-else
-   System.out.println("El fichero no puede ser borrado");
+            BorrarArchivo(datos.getCertificado());
+            
             
         } catch (Exception ex) {
-            File fichero = new File(datos.getCertificado());
-        if (fichero.delete())
-   System.out.println("El fichero ha sido borrado satisfactoriamente");
-else
-   System.out.println("El fichero no puede ser borrado");
-            // TODO handle custom exceptions here
              System.out.println(ex);
+             BorrarArchivo(datos.getCertificado());
         }
 
          }
   
-FacesContext.getCurrentInstance().getExternalContext().redirect("http://aguasis.online:33/Facturacion_SRI/");
+FacesContext.getCurrentInstance().getExternalContext().redirect(pagina_principal);
     }
     
     public static byte[] XMLaByte(File file)
@@ -217,60 +197,7 @@ FacesContext.getCurrentInstance().getExternalContext().redirect("http://aguasis.
         System.out.println(listado[i]);
       }
     }
-return listado;/*
-    //Lo mismo que lo anterior pero con objetos File para poder ver sus propiedades
-    System.out.println(ANSI_RED + "//// LISTADO CON OBJETOS File" + ANSI_RESET);
-
-    File[] archivos = carpeta.listFiles();
-    if (archivos == null || archivos.length == 0) {
-      System.out.println("No hay elementos dentro de la carpeta actual");
-      return;
-    }
-    else {
-      SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-      for (int i=0; i< archivos.length; i++) {
-        File archivo = archivos[i];
-        System.out.println(String.format("%s (%s) - %d - %s", 
-                                          archivo.getName(), 
-                                          archivo.isDirectory() ? "Carpeta" : "Archivo",
-                                          archivo.length(),
-                                          sdf.format(archivo.lastModified())
-                                          ));
-      }
-    }
-
-    //Se pueden filtrar los resultados tanto usando list() como usando listFiles()
-    //Por ejemplo, en este segundo caso para mostrar solo archivos y no carpetas
-    System.out.println(ANSI_RED + "//// LISTADO CON FILTRO APLICADO - SOLO ARCHIVOS" + ANSI_RESET);
-
-    FileFilter filtro = new FileFilter() {
-      @Override
-      public boolean accept(File arch) {
-        return arch.isFile();
-      }
-    };
-
-    archivos = carpeta.listFiles(filtro);
-
-    if (archivos == null || archivos.length == 0) {
-      System.out.println("No hay elementos dentro de la carpeta actual");
-      return;
-    }
-    else {
-      SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-      for (int i=0; i< archivos.length; i++) {
-        File archivo = archivos[i];
-        System.out.println(String.format("%s (%s) - %d - %s", 
-                                          archivo.getName(), 
-                                          archivo.isDirectory() ? "Carpeta" : "Archivo",
-                                          archivo.length(),
-                                          sdf.format(archivo.lastModified())
-                                          ));
-      }
-    }
-
-  
-  */
+return listado;
     }
     
     
@@ -322,11 +249,7 @@ return listado;/*
         } catch (Exception e) {
             e.printStackTrace();
         }
-    
-     
-     
-     
-     
+
        String ClaveAcceso=clv;
 
     /* place your xml request from soap ui below with necessary changes in parameters*/
@@ -402,6 +325,63 @@ return FacturayEstado;
     }
     
       }
+    public void MoverArchivo(String Archivo, String RutaDestino){
+     File file = new File(Archivo);
+		String targetDirectory = RutaDestino;
+ 
+		if (file.renameTo(new File(targetDirectory+ file.getName()))) {
+			System.out.println("El archivo se a movido a: " + targetDirectory);
+		} else {
+			System.out.println("Fallo al mover el archivo");
+		}
+    } 
+    public void BorrarArchivo(String Archivo){
+        try{
+            File fichero = new File(Archivo);
+            fichero.delete();
+   System.out.println("El fichero ha sido borrado satisfactoriamente");
+        } catch (Exception e) {
+       System.out.println("El fichero no puede ser borrado");
+    System.out.println(e);
+        }
     
+    
+
+    }
+    
+    
+    
+    
+     public void Descomprimir(String archivoZip, String rutaSalida) {
+        byte[] buffer = new byte[1024];
+        try {
+            File folder = new File(rutaSalida);
+            if (!folder.exists()) {
+                folder.mkdir();
+            }
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(archivoZip));
+            ZipEntry ze = zis.getNextEntry();
+            while (ze != null) {
+                String nombreArchivo = ze.getName();
+                File archivoNuevo = new File(rutaSalida + File.separator + nombreArchivo);
+                System.out.println("archivo descomprimido : " + archivoNuevo.getAbsoluteFile());
+                new File(archivoNuevo.getParent()).mkdirs();
+                FileOutputStream fos = new FileOutputStream(archivoNuevo);
+                int len;
+                while ((len = zis.read(buffer)) > 0) {
+                    fos.write(buffer, 0, len);
+                }
+                fos.close();
+                ze = zis.getNextEntry();
+            }
+            zis.closeEntry();
+            zis.close();
+            System.out.println("Listo");
+        } catch (IOException ex) {
+            System.out.println(ex);
+            ex.printStackTrace();
+            
+        }
+    }
     
 }
