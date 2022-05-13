@@ -20,6 +20,7 @@ import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
 import javax.inject.Named;
+import static java.nio.file.StandardCopyOption.*;
 import javax.xml.ws.WebServiceRef;
 import recepcion.ws.sri.gob.ec.RecepcionComprobantesOfflineService;
 import java.io.File;
@@ -49,6 +50,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Base64;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -73,7 +75,7 @@ public class Facturar implements Serializable {
     private RecepcionComprobantesOfflineService service;
      public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_RED = "\u001B[31m";
-  private String pagina_principal= "http://localhost:8080/Facturacion_SRI/";
+  private String pagina_principal= "http://aguasis.online:33/Facturacion_SRI/";
 private String PathFacturas= System.getProperty("user.dir")+"/Facturas/"; 
   
     public void enviar() throws IOException,KeyStoreException, Exception{
@@ -91,14 +93,30 @@ private String PathFacturas= System.getProperty("user.dir")+"/Facturas/";
            if(FilenameUtils.getExtension(PathFacturas+"Generadas/"+facturas[i]).equals("xml")) {
             //Inicio Fimra XADESBESS
          try{  
-        XAdESBESSignature.firmar(PathFacturas+"Generadas/"+facturas[i], datos.getCertificado(), datos.getClave(), PathFacturas+"Generadas/","signed-"+facturas[i] );
+        XAdESBESSignature.firmar(PathFacturas+"Generadas/"+facturas[i], datos.getCertificado(), datos.getClave(), PathFacturas+"Generadas/","firmado-"+facturas[i] );
          }
-         catch(Exception e){
+         catch(IOException e){
         System.out.println("Error: " + e);
-       
-        FacesContext.getCurrentInstance().getExternalContext().redirect(pagina_principal);
+        StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String exceptionContrasenaIncorrecta = sw.toString().substring(0,59);
+            String exceptionErrorParsear = sw.toString().substring(0,50);
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>"+exceptionErrorParsear);
+        if(exceptionContrasenaIncorrecta.equals("java.io.IOException: Error: keystore password was incorrect")){
+            BorrarArchivo(datos.getCertificado());
+          FacesContext.getCurrentInstance().getExternalContext().redirect(pagina_principal);
             return;
-    }
+        }else{
+         CopiarArchivo(PathFacturas+"Generadas/"+facturas[i], PathFacturas+"Generadas/SinFirmar-"+facturas[i]);
+        }
+        
+        /*
+          if(exceptionErrorParsear.equals("java.io.IOException: Error al parsear el documento")){
+             MoverArchivo(PathFacturas+"Generadas/"+facturas[i],PathFacturas+"Rechazadas/");
+        }*/
+      
+    
+        }
          //Fin Fimra XADESBESS
            
            }
@@ -135,12 +153,19 @@ private String PathFacturas= System.getProperty("user.dir")+"/Facturas/";
             
             
             System.out.println(facturas[i]+" = "+result.getEstado() );
+           if(result.getEstado() != null) {
             if(result.getEstado().equals("RECIBIDA")){
                 MoverArchivo(PathFacturas+"Generadas/"+facturas[i],PathFacturas+"Aceptadas/");            
             }else
             {
                   MoverArchivo(PathFacturas+"Generadas/"+facturas[i],PathFacturas+"Rechazadas/");             
             }
+           }
+else
+{
+    MoverArchivo(PathFacturas+"Generadas/"+facturas[i],PathFacturas+"Rechazadas/");  
+}
+           
             BorrarArchivo(datos.getCertificado());
             
             
@@ -308,7 +333,13 @@ return listado;
                  "      </ws:callRest>\r\n" + 
                  "   </soapenv:Body>\r\n" + 
                  "</soapenv:Envelope>";*/
-            String responseF=callSoapService(xml);
+            String responseF=SoapRequest(xml, "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl");
+            if(responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>")).equals("AUTORIZADO")){
+     responseF= responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>"));     
+     }else{
+     responseF= responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>"))+": "
+             +responseF.substring(responseF.indexOf("</identificador><mensaje>")+25,responseF.indexOf("</mensaje>"));     
+     }
             FacturayEstado.put(listado[i], responseF);
             System.out.println(responseF);
     
@@ -321,52 +352,6 @@ return listado;
 return FacturayEstado;
     }
       
-      
-      
-      static String callSoapService(String soapRequest) {
-    try {
-     String url = "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl"; // replace your URL here
-     URL obj = new URL(url);
-     HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-     
-     // change these values as per soapui request on top left of request, click on RAW, you will find all the headers
-     con.setRequestMethod("POST");
-     con.setRequestProperty("Content-Type","text/xml; charset=utf-8"); 
-     con.setDoOutput(true);
-     DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-     wr.writeBytes(soapRequest);
-     wr.flush();
-     wr.close();
-     String responseStatus = con.getResponseMessage();
-     System.out.println(responseStatus);
-     BufferedReader in = new BufferedReader(new InputStreamReader(
-     con.getInputStream()));
-     String inputLine;
-     StringBuffer response = new StringBuffer();
-     while ((inputLine = in.readLine()) != null) {
-         response.append(inputLine);
-     }
-     in.close();
-     
-     // You can play with response which is available as string now:
-     String finalvalue= response.toString();
-     
-     // or you can parse/substring the required tag from response as below based your response code
-     if(finalvalue.substring(finalvalue.indexOf("<estado>")+8,finalvalue.indexOf("</estado>")).equals("AUTORIZADO")){
-     finalvalue= finalvalue.substring(finalvalue.indexOf("<estado>")+8,finalvalue.indexOf("</estado>"));     
-     }else{
-     finalvalue= finalvalue.substring(finalvalue.indexOf("<estado>")+8,finalvalue.indexOf("</estado>"))+": "
-             +finalvalue.substring(finalvalue.indexOf("</identificador><mensaje>")+25,finalvalue.indexOf("</mensaje>"));     
-     }
-     
-     
-     return finalvalue;
-     } 
-    catch (Exception e) {
-        return e.getMessage();
-    }
-    
-      }
     public void MoverArchivo(String Archivo, String RutaDestino){
      File file = new File(Archivo);
 		String targetDirectory = RutaDestino;
@@ -377,6 +362,20 @@ return FacturayEstado;
 			System.out.println("Fallo al mover el archivo");
 		}
     } 
+    public void CopiarArchivo(String Archivo, String DestinoyNombre){
+    String  sourcePath = Archivo;   // source file path
+        String destinationPath=DestinoyNombre;  // destination file path
+        File sourceFile = new File(sourcePath);        // Creating A Source File
+        File destinationFile = new File(destinationPath);   //Creating A Destination File. Name stays the same this way, referring to getName()
+        try 
+        {
+        Files.copy(sourceFile.toPath(), destinationFile.toPath(),REPLACE_EXISTING);  
+          // Static Methods To Copy Copy source path to destination path
+        } catch(Exception e)
+        {
+             System.out.println(e);  // printing in case of error.
+        }
+    }
     public void BorrarArchivo(String Archivo){
         try{
             File fichero = new File(Archivo);
@@ -466,5 +465,6 @@ return FacturayEstado;
     }
     
       }
+        
     
 }
