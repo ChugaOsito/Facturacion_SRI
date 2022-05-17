@@ -75,7 +75,7 @@ public class Facturar implements Serializable {
     private RecepcionComprobantesOfflineService service;
      public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_RED = "\u001B[31m";
-  private String pagina_principal= "http://aguasis.online:33/Facturacion_SRI/";
+  private String pagina_principal= "http://localhost:8080/Facturacion_SRI/";
 private String PathFacturas= System.getProperty("user.dir")+"/Facturas/"; 
   
     public void enviar() throws IOException,KeyStoreException, Exception{
