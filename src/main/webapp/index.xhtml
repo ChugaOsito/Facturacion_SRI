@@ -29,11 +29,23 @@
          <br></br>
         
             <br></br>
-              <h:form enctype="multipart/form-data">
-                  
-                  <h:outputLabel for="certificado" value="Ingrese Certificado de Firma Electronica" />
+            <h:form enctype="multipart/form-data">
+                 <h:outputLabel for="ZIP" value="Ingrese ZIP" />
                   <br></br>
                   
+                  <p:fileUpload  id="ZIP" value="#{firmaElectronicaBean.zip}" mode="simple" />
+                  <br></br>
+                  <br></br>
+                  <h:commandButton value="SubirZIP" onclick="Loading();"  actionListener="#{firmaElectronicaBean.subirzip()}" /> 
+                  <br></br><br></br>
+                  <hr size="4px" color="gray" />
+                
+            </h:form>
+              <h:form enctype="multipart/form-data">
+                    
+                  
+                  <h:outputLabel for="certificado" value="Ingrese Certificado de Firma Electronica" />
+                <br></br>            
                   <p:fileUpload  id="certificado" value="#{firmaElectronicaBean.uploadedFile}" mode="simple" />
                   
                   <br></br><br></br>
@@ -48,7 +60,7 @@
               
 
             </h:form>
-            
+             <hr size="4px" color="gray" />
               <p:dataTable var="entry" value="#{facturar.listarXMLs('/Facturas/Generadas')}">
             <p:column headerText="Comprobantes Generados">
                 <h:outputText value="${entry}" />

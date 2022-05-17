@@ -24,10 +24,20 @@ import org.primefaces.model.file.UploadedFile;
 public class FirmaElectronicaBean {
     private static String Certificado;
     private static String Clave;
-    
     private static UploadedFile uploadedFile;
+    private static UploadedFile zip;
 public  FirmaElectronicaBean(){
 }
+
+    public UploadedFile getZip() {
+        return zip;
+    }
+
+    public void setZip(UploadedFile zip) {
+        this.zip = zip;
+    }
+
+   
 
     public UploadedFile getUploadedFile() {
         return uploadedFile;
@@ -85,5 +95,13 @@ setCertificado(Cert);
   }
   return null;
 }
-    
+   public void subirzip(){
+      
+       if(zip.getContentType().equals("application/x-zip-compressed")){
+      saveUploadedFile(System.getProperty("user.dir")+"/Facturas/Generadas",zip);
+       }else{
+        return;
+       }
+
+} 
 }
