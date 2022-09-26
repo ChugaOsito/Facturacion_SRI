@@ -55,7 +55,21 @@ import java.util.Base64;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+import javax.faces.context.ExternalContext;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import static javax.swing.text.DefaultStyledDocument.ElementSpec.ContentType;
+import static org.bouncycastle.asn1.cms.CMSAttributes.contentType;
+import org.primefaces.model.DefaultStreamedContent;
+import org.primefaces.model.StreamedContent;
 import org.primefaces.shaded.commons.io.FilenameUtils;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 
 /**
@@ -75,8 +89,20 @@ public class Facturar implements Serializable {
     private RecepcionComprobantesOfflineService service;
      public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_RED = "\u001B[31m";
-  private String pagina_principal= "http://aguasis.online:33/Facturacion_SRI/";
+  private String pagina_principal= "http://localhost:8080/Facturacion_SRI/";
 private String PathFacturas= System.getProperty("user.dir")+"/Facturas/"; 
+private StreamedContent ComprobanteADescargar;
+
+ 
+    public StreamedContent getComprobanteADescargar() {
+        return ComprobanteADescargar;
+    }
+
+    public void setComprobanteADescargar(StreamedContent ComprobanteADescargar) {
+        this.ComprobanteADescargar = ComprobanteADescargar;
+    }
+
+
   
     public void enviar() throws IOException,KeyStoreException, Exception{
         System.out.println("UBICACION USER DIR==="+System.getProperty("user.dir"));
@@ -333,15 +359,21 @@ return listado;
                  "      </ws:callRest>\r\n" + 
                  "   </soapenv:Body>\r\n" + 
                  "</soapenv:Envelope>";*/
-            String responseF=SoapRequest(xml, "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl");
-            if(responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>")).equals("AUTORIZADO")){
-     responseF= responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>"));     
-     }else{
-     responseF= responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>"))+": "
-             +responseF.substring(responseF.indexOf("</identificador><mensaje>")+25,responseF.indexOf("</mensaje>"));     
-     }
-            FacturayEstado.put(listado[i], responseF);
-            System.out.println(responseF);
+            try{
+                String responseF=SoapRequest(xml, "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl");
+                if(responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>")).equals("AUTORIZADO")){
+                    responseF= responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>"));     
+                 }else{
+                    responseF= responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>"))+": "
+                    +responseF.substring(responseF.indexOf("</identificador><mensaje>")+25,responseF.indexOf("</mensaje>"));     
+                    }
+                FacturayEstado.put(listado[i], responseF);
+                System.out.println(responseF);
+            }catch (Exception e) {
+            FacturayEstado.put(listado[i], "No fue posible conectarse con el servidor del SRI");
+                
+            }
+            
     
 
 
@@ -425,6 +457,43 @@ return FacturayEstado;
         }
     }
      
+     public synchronized void descargarTodo() throws FileNotFoundException, IOException{
+       
+      
+        compress(PathFacturas+"Aceptadas/");
+       
+         final File file = new File(PathFacturas+"Aceptadas/Comprobantes.zip");
+            download(file); 
+     }
+   
+     
+     public synchronized void descargarUno(String comprobante) throws IOException {
+    final File file = new File(PathFacturas+"Aceptadas/"+comprobante);
+    download(file);    
+}
+     
+      public synchronized void download(File file) throws IOException {
+          final FacesContext fc = FacesContext.getCurrentInstance();
+    final ExternalContext externalContext = fc.getExternalContext();
+           externalContext.responseReset();
+    externalContext.setResponseContentType("text/xml");
+    //externalContext.setResponseContentLength(Long.valueOf(file.lastModified()).intValue());
+    externalContext.setResponseHeader("Content-Disposition", "attachment;filename=" + file.getName());
+
+    final HttpServletResponse response = (HttpServletResponse) externalContext.getResponse();
+
+    FileInputStream input = new FileInputStream(file);
+    byte[] buffer = new byte[1024];
+    final ServletOutputStream out = response.getOutputStream();
+
+    while ((input.read(buffer)) != -1) {
+        out.write(buffer);
+    }
+
+    out.flush();
+    fc.responseComplete();
+    }
+     
      
         static String SoapRequest(String soapRequest, String url) {
     try {
@@ -467,6 +536,30 @@ return FacturayEstado;
       }
         
      
-        
+  public static void compress(String dirPath) {
+        final Path sourceDir = Paths.get(dirPath);
+        String zipFileName = dirPath.concat("Comprobantes.zip");
+        try {
+            final ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
+            Files.walkFileTree(sourceDir, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) {
+                    try {
+                        Path targetFile = sourceDir.relativize(file);
+                        outputStream.putNextEntry(new ZipEntry(targetFile.toString()));
+                        byte[] bytes = Files.readAllBytes(file);
+                        outputStream.write(bytes, 0, bytes.length);
+                        outputStream.closeEntry();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }       
     
 }

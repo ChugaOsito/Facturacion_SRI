@@ -68,11 +68,16 @@
         </p:dataTable>
             
           
-          
+        
             
    
-            
+            <h:form>
+                
+                                <p:commandButton  value="Descargar todos los comprobantes" icon="pi pi-download" ajax="false" actionListener="#{facturar.descargarTodo}"
+                                                 styleClass="ui-button-success" style="margin-right: .5rem" />                               
+                            
             <p:dataTable var="entry" value="#{facturar.listarXMLsyEstado('/Facturas/Aceptadas')}">
+                
             <p:column headerText="Comprobantes Enviados">
                 <h:outputText value="${entry.key}" />
             </p:column>
@@ -80,7 +85,14 @@
             <p:column headerText="Estado">
                 <h:outputText value="${entry.value}" />
             </p:column>
+                
+             <p:column headerText="Descargar"   > 
+                 <p:commandButton   icon="pi pi-download" ajax="false" actionListener="#{facturar.descargarUno(entry.key)}"></p:commandButton>             
+        </p:column>
+              
+                
         </p:dataTable>
+              </h:form>
             
              <p:dataTable var="entry" value="#{facturar.listarXMLsRechazados('/Facturas/Rechazadas/')}">
             <p:column headerText="Comprobantes Rechazados">
