@@ -70,7 +70,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
+import org.apache.commons.lang3.StringEscapeUtils;
 
 /**
  *
@@ -288,100 +288,41 @@ return listado;
     }
     
     
-      public  Map listarXMLsyEstado(String Ubicacion){
-         
-    
-     Map FacturayEstado = new HashMap();
-     String Estado;
-     String clv="";
-        
-    //Carpeta del usuario "\\OneDrive\\Documentos\\NetBeansProjects\\Facturacion\\Facturacion\\src\\main\\resources\\Facturas\\Generadas"
-    String sCarpAct = System.getProperty("user.dir")+ Ubicacion;
-    //System.out.println("Carpeta del usuario = " + sCarpAct);
+    public  Map listarXMLsyEstado(String Ubicacion){
+        Map FacturayEstado = new HashMap();
+        String Estado;
+        String ClaveAcceso="";
+        //Carpeta del usuario "\\OneDrive\\Documentos\\NetBeansProjects\\Facturacion\\Facturacion\\src\\main\\resources\\Facturas\\Generadas"
+        String sCarpAct = System.getProperty("user.dir")+ Ubicacion;
+        //System.out.println("Carpeta del usuario = " + sCarpAct);
 
-    //Listemos todas las carpetas y archivos de la carpeta actual
-    System.out.println(ANSI_RED + "//// LISTADO SIMPLE" + ANSI_RESET);
+        //Listemos todas las carpetas y archivos de la carpeta actual
+        System.out.println(ANSI_RED + "//// LISTADO SIMPLE" + ANSI_RESET);
 
-    File carpeta = new File(sCarpAct);
-    String[] listado = carpeta.list();
-    if (listado == null || listado.length == 0) {
-      System.out.println("No hay elementos dentro de la carpeta actual");
-      return FacturayEstado;
-    }
-    else {
-      for (int i=0; i< listado.length; i++) {
-        System.out.println(listado[i]);
-      }
-    }
-    //Obtener ESTADO 
-     for (int i=0; i< listado.length; i++) {
-     try {
-            File archivo = new File(PathFacturas+"Aceptadas/"+listado[i]);
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
-            Document document = documentBuilder.parse(archivo);
-            document.getDocumentElement().normalize();
-            System.out.println("Elemento raiz:" + document.getDocumentElement().getNodeName());
-            NodeList listaEmpleados = document.getElementsByTagName("infoTributaria");
-            for (int temp = 0; temp < listaEmpleados.getLength(); temp++) {
-                Node nodo = listaEmpleados.item(temp);
-                System.out.println("Elemento:" + nodo.getNodeName());
-                if (nodo.getNodeType() == Node.ELEMENT_NODE) {
-                    Element element = (Element) nodo;
-                   // System.out.println("id: " + element.getAttribute("id"));
-                    
-                clv=element.getElementsByTagName("claveAcceso").item(0).getTextContent();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        File carpeta = new File(sCarpAct);
+        String[] listado = carpeta.list();
+        if (listado == null || listado.length == 0) {
+            System.out.println("No hay elementos dentro de la carpeta actual");
+            return FacturayEstado;
         }
-
-       String ClaveAcceso=clv;
-
-    /* place your xml request from soap ui below with necessary changes in parameters*/
-    
-    String xml=" <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ec=\"http://ec.gob.sri.ws.autorizacion\">\n" +
-"        <soapenv:Header/>\n" +
-"        <soapenv:Body>\n" +
-"        <ec:autorizacionComprobante>\n" +
-"      <claveAccesoComprobante>"+ClaveAcceso+"</claveAccesoComprobante>\n" +
-"        </ec:autorizacionComprobante>\n" +
-"        </soapenv:Body>\n" +
-"        </soapenv:Envelope>";
-            
-            /*"<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ws=\"http://www.YourUrlAsPerWsdl.com/\">\r\n" + 
-                 "   <soapenv:Header/>\r\n" + 
-                 "   <soapenv:Body>\r\n" + 
-                 "      <ws:callRest>\r\n" + 
-                 "         <name>"+"Hello"+"</name>\r\n" + 
-                 "         <address>"+address+"</address>\r\n" + 
-                 "      </ws:callRest>\r\n" + 
-                 "   </soapenv:Body>\r\n" + 
-                 "</soapenv:Envelope>";*/
-            try{
-                String responseF=SoapRequest(xml, "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl");
-                if(responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>")).equals("AUTORIZADO")){
-                    responseF= responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>"));     
-                 }else{
-                    responseF= responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>"))+": "
-                    +responseF.substring(responseF.indexOf("</identificador><mensaje>")+25,responseF.indexOf("</mensaje>"));     
-                    }
-                FacturayEstado.put(listado[i], responseF);
-                System.out.println(responseF);
-            }catch (Exception e) {
-            FacturayEstado.put(listado[i], "No fue posible conectarse con el servidor del SRI");
-                
+        else {
+            for (int i=0; i< listado.length; i++) {
+                System.out.println(listado[i]);
             }
-            
-    
-
-
-     
-     }
-    //fIN oBTENER ESTADO
-    System.out.println("INFORMACION PARA LA VISTA "+ FacturayEstado);
-return FacturayEstado;
+        }
+        //Obtener ESTADO 
+        for (int i=0; i< listado.length; i++) {
+            try {
+                File archivoXML = new File(PathFacturas+"Aceptadas/"+listado[i]);
+                ClaveAcceso=obtenerClaveAcceso(archivoXML);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            FacturayEstado.put(listado[i],obtenerEstado(ClaveAcceso));   
+        }
+        //fIN oBTENER ESTADO
+        System.out.println("INFORMACION PARA LA VISTA "+ FacturayEstado);
+        return FacturayEstado;
     }
       
     public void MoverArchivo(String Archivo, String RutaDestino){
@@ -458,18 +399,79 @@ return FacturayEstado;
     }
      
      public synchronized void descargarTodo() throws FileNotFoundException, IOException{
+         File f = new File(PathFacturas+"temp/test.zip");
+         ZipOutputStream salida = new ZipOutputStream(new FileOutputStream(f));
+          String sCarpAct =PathFacturas+"Aceptadas/";
+        //System.out.println("Carpeta del usuario = " + sCarpAct);
+
+        //Listemos todas las carpetas y archivos de la carpeta actual
+        System.out.println(ANSI_RED + "//// LISTADO SIMPLE" + ANSI_RESET);
+
+        File carpeta = new File(sCarpAct);
+        String[] listado = carpeta.list();
+        if (listado == null || listado.length == 0) {
+            System.out.println("No hay elementos dentro de la carpeta actual");
+            
+        }
+        else {
+            for (int i=0; i< listado.length; i++) {
+                System.out.println(listado[i]);
+            }
+        }
+        //Obtener ESTADO 
+        for (int i=0; i< listado.length; i++) {
+            
+            try {
+                
+                File archivoXML = new File(PathFacturas+"Aceptadas/"+listado[i]);
+                if(obtenerEstado(obtenerClaveAcceso(archivoXML)).equals("AUTORIZADO")){
+                 StringBuilder sb = new StringBuilder();
+                sb.append(obtenerXMLAutorizado(obtenerClaveAcceso(archivoXML)));
+                
+                
+                ZipEntry e = new ZipEntry(listado[i]);
+                salida.putNextEntry(e);
+                byte[] data = sb.toString().getBytes();
+                salida.write(data, 0, data.length);
+                salida.closeEntry();
+               
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println(e);
+            }
+              
+        }
+         salida.close();
+        
        
-      
-        compress(PathFacturas+"Aceptadas/");
-       
-         final File file = new File(PathFacturas+"Aceptadas/Comprobantes.zip");
-            download(file); 
+    
+        
+
+    
+    
+    download(f);  
      }
    
      
      public synchronized void descargarUno(String comprobante) throws IOException {
     final File file = new File(PathFacturas+"Aceptadas/"+comprobante);
-    download(file);    
+    
+        StringBuilder sb = new StringBuilder();
+    sb.append(obtenerXMLAutorizado(obtenerClaveAcceso(file)));
+
+    File f = new File(PathFacturas+"temp/test.zip");
+    ZipOutputStream out = new ZipOutputStream(new FileOutputStream(f));
+    ZipEntry e = new ZipEntry(comprobante);
+    out.putNextEntry(e);
+
+    byte[] data = sb.toString().getBytes();
+    out.write(data, 0, data.length);
+    out.closeEntry();
+
+    out.close();
+    
+    download(f);    
 }
      
       public synchronized void download(File file) throws IOException {
@@ -560,6 +562,80 @@ return FacturayEstado;
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }       
+    }   
+  public String obtenerClaveAcceso(File archivo){
+    String clv="";
+    try {
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+        Document document = documentBuilder.parse(archivo);
+        document.getDocumentElement().normalize();
+        System.out.println("Elemento raiz:" + document.getDocumentElement().getNodeName());
+        NodeList listaEmpleados = document.getElementsByTagName("infoTributaria");
+        for (int temp = 0; temp < listaEmpleados.getLength(); temp++) {
+            Node nodo = listaEmpleados.item(temp);
+            System.out.println("Elemento:" + nodo.getNodeName());
+            if (nodo.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) nodo;
+                // System.out.println("id: " + element.getAttribute("id"));
+
+                clv=element.getElementsByTagName("claveAcceso").item(0).getTextContent();
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    String ClaveAcceso=clv;
+    System.out.println("La clave a consultar es: "+clv);
+    return clv;
+  }
+  public String obtenerEstado(String ClaveAcceso){
+    String estado="";
+    String xml=" <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ec=\"http://ec.gob.sri.ws.autorizacion\">\n" +
+    "        <soapenv:Header/>\n" +
+    "        <soapenv:Body>\n" +
+    "        <ec:autorizacionComprobante>\n" +
+    "      <claveAccesoComprobante>"+ClaveAcceso+"</claveAccesoComprobante>\n" +
+    "        </ec:autorizacionComprobante>\n" +
+    "        </soapenv:Body>\n" +
+    "        </soapenv:Envelope>";
+    try{
+        String responseF=SoapRequest(xml, "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl");
+        if(responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>")).equals("AUTORIZADO")){
+            responseF= responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>"));     
+        }else{
+            responseF= responseF.substring(responseF.indexOf("<estado>")+8,responseF.indexOf("</estado>"))+": "
+            +responseF.substring(responseF.indexOf("</identificador><mensaje>")+25,responseF.indexOf("</mensaje>"));     
+        }
+        estado= responseF;
+    }catch (Exception e) {
+        estado= "No fue posible conectarse con el servidor del SRI"; 
+    }
+    return estado;
+  }
+  public String obtenerXMLAutorizado(String claveAcceso){
+  String responseF="";
+   String xml=" <soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ec=\"http://ec.gob.sri.ws.autorizacion\">\n" +
+    "        <soapenv:Header/>\n" +
+    "        <soapenv:Body>\n" +
+    "        <ec:autorizacionComprobante>\n" +
+    "      <claveAccesoComprobante>"+claveAcceso+"</claveAccesoComprobante>\n" +
+    "        </ec:autorizacionComprobante>\n" +
+    "        </soapenv:Body>\n" +
+    "        </soapenv:Envelope>";
+    try{
+        responseF=SoapRequest(xml, "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl");
+        responseF=responseF.substring(responseF.indexOf("<RespuestaAutorizacionComprobante>"),responseF.indexOf("</RespuestaAutorizacionComprobante>")+35);
+        responseF=StringEscapeUtils.unescapeHtml4(responseF); 
+       responseF=responseF.replace("        ", "\n");
+        responseF=responseF.replaceFirst(">", ">\n");
+        }catch (Exception e) {
+        responseF= "No fue posible obtener el XML"; 
+    }
+    
+  return responseF;
+  }
     
 }

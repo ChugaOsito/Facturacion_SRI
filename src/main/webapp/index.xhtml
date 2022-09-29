@@ -87,7 +87,7 @@
             </p:column>
                 
              <p:column headerText="Descargar"   > 
-                 <p:commandButton   icon="pi pi-download" ajax="false" actionListener="#{facturar.descargarUno(entry.key)}"></p:commandButton>             
+                 <p:commandButton disabled="${entry.value != 'AUTORIZADO'}"   icon="pi pi-download" ajax="false" actionListener="#{facturar.descargarUno(entry.key)}"></p:commandButton>             
         </p:column>
               
                 
