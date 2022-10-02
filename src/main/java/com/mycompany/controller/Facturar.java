@@ -6,6 +6,7 @@
 package com.mycompany.controller;
 import autorizacion.ws.sri.gob.ec.Autorizacion;
 import autorizacion.ws.sri.gob.ec.AutorizacionComprobantesOfflineService;
+import dyto.util.CorreoElectronico;
 
 import java.text.SimpleDateFormat;
 import java.io.*;
@@ -68,6 +69,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -92,6 +94,44 @@ public class Facturar implements Serializable {
   private String pagina_principal= "http://localhost:8080/Facturacion_SRI/";
 private String PathFacturas= System.getProperty("user.dir")+"/Facturas/"; 
 private StreamedContent ComprobanteADescargar;
+//Inicio pruebas envioCorreo
+//Las siguientes lineas de codigo solo se usaron para demostracion de metodo envioCorreo BORRAR de ser necesario
+private String Path;
+private String correoDestinatario;
+private Boolean envioCorreoExitoso;
+
+    public Boolean getEnvioCorreoExitoso() {
+        return envioCorreoExitoso;
+    }
+
+    public void setEnvioCorreoExitoso(Boolean envioCorreoExitoso) {
+        this.envioCorreoExitoso = envioCorreoExitoso;
+    }
+
+
+    public String getPath() {
+        return Path;
+    }
+
+    public void setPath(String Path) {
+        this.Path = Path;
+    }
+
+    public String getCorreoDestinatario() {
+        return correoDestinatario;
+    }
+
+    public void setCorreoDestinatario(String correoDestinatario) {
+        this.correoDestinatario = correoDestinatario;
+    }
+    public void envioXMLporCorreo(){
+         List<String> Paths=new ArrayList<>();
+        CorreoElectronico cr=new CorreoElectronico();
+        Paths.add(Path);
+        envioCorreoExitoso= cr.enviarCorreoConAnexos(correoDestinatario, Paths);    
+    }
+//Fin pruebas metodo envioCorreo
+
 
  
     public StreamedContent getComprobanteADescargar() {
@@ -104,7 +144,7 @@ private StreamedContent ComprobanteADescargar;
 
 
   
-    public void enviar() throws IOException,KeyStoreException, Exception{
+    public synchronized void enviar() throws IOException,KeyStoreException, Exception{
         System.out.println("UBICACION USER DIR==="+System.getProperty("user.dir"));
         FirmaElectronicaBean datos =new FirmaElectronicaBean ();
         String[] comprimidos=listarXMLs("/Facturas/Generadas");
@@ -325,7 +365,7 @@ return listado;
         return FacturayEstado;
     }
       
-    public void MoverArchivo(String Archivo, String RutaDestino){
+    public synchronized void MoverArchivo(String Archivo, String RutaDestino){
      File file = new File(Archivo);
 		String targetDirectory = RutaDestino;
  
@@ -335,7 +375,7 @@ return listado;
 			System.out.println("Fallo al mover el archivo");
 		}
     } 
-    public void CopiarArchivo(String Archivo, String DestinoyNombre){
+    public synchronized void CopiarArchivo(String Archivo, String DestinoyNombre){
     String  sourcePath = Archivo;   // source file path
         String destinationPath=DestinoyNombre;  // destination file path
         File sourceFile = new File(sourcePath);        // Creating A Source File
@@ -349,7 +389,7 @@ return listado;
              System.out.println(e);  // printing in case of error.
         }
     }
-    public void BorrarArchivo(String Archivo){
+    public synchronized void BorrarArchivo(String Archivo){
         try{
             File fichero = new File(Archivo);
             fichero.delete();
@@ -366,7 +406,7 @@ return listado;
     
     
     
-     public void Descomprimir(String archivoZip, String rutaSalida) {
+     public synchronized void Descomprimir(String archivoZip, String rutaSalida) {
         byte[] buffer = new byte[1024];
         try {
             File folder = new File(rutaSalida);
@@ -538,7 +578,7 @@ return listado;
       }
         
      
-  public static void compress(String dirPath) {
+  public synchronized static void compress(String dirPath) {
         final Path sourceDir = Paths.get(dirPath);
         String zipFileName = dirPath.concat("Comprobantes.zip");
         try {

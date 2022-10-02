@@ -74,7 +74,7 @@ setCertificado(Cert);
         this.Clave = Clave;
     }
     
-    public static String saveUploadedFile(String path, UploadedFile uploadedFile) {
+    public synchronized static String saveUploadedFile(String path, UploadedFile uploadedFile) {
   try {
     //First, Generate file to make directories
     String savedFileName = path + "/" + uploadedFile.getFileName();
@@ -95,7 +95,7 @@ setCertificado(Cert);
   }
   return null;
 }
-   public void subirzip(){
+   public synchronized void subirzip(){
       
        if(zip.getContentType().equals("application/x-zip-compressed")){
       saveUploadedFile(System.getProperty("user.dir")+"/Facturas/Generadas",zip);

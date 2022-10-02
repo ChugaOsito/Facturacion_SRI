@@ -29,17 +29,40 @@
          <br></br>
         
             <br></br>
+                  <hr size="4px" color="gray" />
+
+            <h:form>
+                 <br></br>
+                 <b><p:outputLabel value="EJEMPLO DE METODO envioCorreo()"></p:outputLabel></b>
+                 <br></br>
+                 <br></br>
+                 <p:outputLabel value="Ingrese Path De Archivo"></p:outputLabel>
+                 <br></br>
+                 <p:inputText value="#{facturar.path}"></p:inputText>
+                 <br></br>
+                 <p:outputLabel value="Ingrese correo Destinatario"></p:outputLabel>
+                 <br></br>
+                 <p:inputText value="#{facturar.correoDestinatario}"></p:inputText>
+                 <br></br>
+                 <br></br>
+                 <b><p:outputLabel value="Se envio correo?     #{facturar.envioCorreoExitoso}"></p:outputLabel></b>
+                 <br></br>
+                 <br></br>
+                 <p:commandButton value="Enviar" actionListener="#{facturar.envioXMLporCorreo()}"></p:commandButton>
+                   <hr size="4px" color="gray" />
+
+             </h:form>
+            <br></br>
+            <br></br>
             <h:form enctype="multipart/form-data">
                  <h:outputLabel for="ZIP" value="Ingrese ZIP" />
                   <br></br>
-                  
                   <p:fileUpload  id="ZIP" value="#{firmaElectronicaBean.zip}" mode="simple" />
                   <br></br>
                   <br></br>
                   <h:commandButton value="SubirZIP" onclick="Loading();"  actionListener="#{firmaElectronicaBean.subirzip()}" /> 
                   <br></br><br></br>
                   <hr size="4px" color="gray" />
-                
             </h:form>
               <h:form enctype="multipart/form-data">
                     
@@ -87,7 +110,7 @@
             </p:column>
                 
              <p:column headerText="Descargar"   > 
-                 <p:commandButton disabled="${entry.value != 'AUTORIZADO'}"   icon="pi pi-download" ajax="false" actionListener="#{facturar.descargarUno(entry.key)}"></p:commandButton>             
+                 <p:commandButton id="descargaIndividualButton" disabled="${entry.value != 'AUTORIZADO'}"   icon="pi pi-download" ajax="false" actionListener="#{facturar.descargarUno(entry.key)}"></p:commandButton>             
         </p:column>
               
                 
@@ -104,7 +127,7 @@
             </p:column>
         </p:dataTable>
             
-               
+             
             
             
         </h:body>
