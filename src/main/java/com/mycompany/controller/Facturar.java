@@ -128,7 +128,7 @@ private Boolean envioCorreoExitoso;
          List<String> Paths=new ArrayList<>();
         CorreoElectronico cr=new CorreoElectronico();
         Paths.add(Path);
-        envioCorreoExitoso= cr.enviarCorreoConAnexos(correoDestinatario, Paths);    
+        envioCorreoExitoso= cr.envioCorreo(correoDestinatario, Paths);    
     }
 //Fin pruebas metodo envioCorreo
 

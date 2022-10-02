@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class CorreoElectronico {
 
-   public boolean enviarCorreoConAnexos(String correoDestinatario, List <String> pathsArchivos) {
+   public boolean envioCorreo(String correoDestinatario, List <String> pathsArchivos) {
        boolean operacionExitosa=false;
         List<File> adjuntos=new ArrayList<>();
        String subject="Envio de comprobantes SRI";
@@ -32,7 +32,8 @@ public class CorreoElectronico {
             adjuntos.add(new File(pathsArchivos.get(i)));
         }
         try {
-            operacionExitosa= EmailHelper.sendHtmlEmailWithAttachments("smtp.gmail.com",465, true, CORREO_ENVIO, "qfwghnhlqmrxrdij", correoDestinatario, correoDestinatario, CORREO_ENVIO, "SRI COMPROBANTES", subject, generarMensaje(emailBody) , "Su navegador no admite HTML",adjuntos);  
+            operacionExitosa= EmailHelper.sendHtmlEmailWithAttachments("smtp.gmail.com",465, true, CORREO_ENVIO, "qfwghnhlqmrxrdij", 
+                    correoDestinatario, correoDestinatario, CORREO_ENVIO, "SRI COMPROBANTES", subject, generarMensaje(emailBody) , "Su navegador no admite HTML",adjuntos);  
         } catch (SecurityException | IllegalStateException e1) {
             operacionExitosa=false;
             System.err.println(e1);
