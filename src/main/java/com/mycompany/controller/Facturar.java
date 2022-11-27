@@ -677,5 +677,74 @@ return listado;
     
   return responseF;
   }
+  public boolean estadoWebServiceSRIPruebas(){
+    boolean estado= false;
+    String urlAutorizacion="https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl";
+    String urlRecepcion="https://celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline?wsdl";
+    String responseAutorizacion="";
+    String responseRecepcion="";
+    try{
+        responseAutorizacion=GETresponse(urlAutorizacion);
+        responseRecepcion=GETresponse(urlRecepcion);  
+        responseAutorizacion=responseAutorizacion.substring(responseAutorizacion.indexOf("<soap:address location=")+79,responseAutorizacion.indexOf("<soap:address location=")+110);
+        responseRecepcion=responseRecepcion.substring(responseRecepcion.indexOf("<soap:address location=")+79,responseRecepcion.indexOf("<soap:address location=")+107);
+    }catch(Exception e){
+        return estado;
+    }
+
+    if((responseAutorizacion.equals("AutorizacionComprobantesOffline")) && (responseRecepcion.equals("RecepcionComprobantesOffline"))){
+        estado=true;
+    }     
+    return estado;
+  }
+  
+    public boolean estadoWebServiceSRIProduccion(){
+    boolean estado= false;
+    String urlAutorizacion="https://cel.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl";
+    String urlRecepcion="https://cel.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline?wsdl";
+    String responseAutorizacion="";
+    String responseRecepcion="";
+    try{
+        responseAutorizacion=GETresponse(urlAutorizacion);
+        responseRecepcion=GETresponse(urlRecepcion);  
+        responseAutorizacion=responseAutorizacion.substring(responseAutorizacion.indexOf("<soap:address location=")+76,responseAutorizacion.indexOf("<soap:address location=")+107);
+        responseRecepcion=responseRecepcion.substring(responseRecepcion.indexOf("<soap:address location=")+76,responseRecepcion.indexOf("<soap:address location=")+104);
+    }catch(Exception e){
+        return estado;
+    }
+
+    if((responseAutorizacion.equals("AutorizacionComprobantesOffline")) && (responseRecepcion.equals("RecepcionComprobantesOffline"))){
+        estado=true;
+    }     
+    return estado;
+  }
+  
+  public  String GETresponse(String URL){
+      String finalvalue="";
+  try{
+        //String url = "https://celcer.sri.gob.ec/comprobantes-electronicos-ws/AutorizacionComprobantesOffline?wsdl"; // replace your URL here
+     URL obj = new URL(URL);
+     HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+     
+     // change these values as per soapui request on top left of request, click on RAW, you will find all the headers
+     con.setRequestMethod("GET");
+     con.setRequestProperty("Content-Type","text/xml; charset=utf-8"); 
+     con.setDoOutput(true);
+     String responseStatus = con.getResponseMessage();
+     BufferedReader in = new BufferedReader(new InputStreamReader(
+     con.getInputStream()));
+     String inputLine;
+     StringBuffer response = new StringBuffer();
+     while ((inputLine = in.readLine()) != null) {
+         response.append(inputLine);
+     }
+     in.close();
+     finalvalue= response.toString();
+        }catch (Exception e) {
+            System.out.println(e);
+            finalvalue="";
+    }
+  return finalvalue;
+  }
     
 }

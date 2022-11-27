@@ -30,6 +30,13 @@
         
             <br></br>
                   <hr size="4px" color="gray" />
+                  
+                  <p:outputLabel style="color:green" value="SRI AMBIENTE DE PRUEBAS EN LINEA :)" rendered="#{facturar.estadoWebServiceSRIPruebas()==true}"></p:outputLabel>
+                  <p:outputLabel style="color:red" value="SRI AMBIENTE DE PRUEBAS FUERA DE SERVICIO :(" rendered="#{facturar.estadoWebServiceSRIPruebas()!=true}"></p:outputLabel>
+                 
+                  <br></br>
+                  <p:outputLabel style="color:green" value="SRI AMBIENTE DE PRODUCCION EN LINEA :)" rendered="#{facturar.estadoWebServiceSRIProduccion()==true}"></p:outputLabel>
+                  <p:outputLabel style="color:red" value="SRI AMBIENTE DE PRODUCCION FUERA DE SERVICIO :(" rendered="#{facturar.estadoWebServiceSRIProduccion()!=true}"></p:outputLabel>
 
             <h:form>
                  <br></br>
@@ -50,6 +57,8 @@
                  <br></br>
                  <p:commandButton value="Enviar" actionListener="#{facturar.envioXMLporCorreo()}"></p:commandButton>
                    <hr size="4px" color="gray" />
+                   
+
 
              </h:form>
             <br></br>
@@ -128,7 +137,7 @@
         </p:dataTable>
             
              
-            
+                    
             
         </h:body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>

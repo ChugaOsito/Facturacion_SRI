@@ -331,28 +331,10 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.jvnet.jax-ws-commons</groupId>
+                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxws-maven-plugin</artifactId>
-                <version>2.3</version>
+                <version>2.6</version><!--Se ha cambiado la version de este plugin de 2.3 a 2.6 debido a errores -->
                 <executions>
-                    <execution>
-                        <goals>
-                            <goal>wsimport</goal>
-                        </goals>
-                        <configuration>
-                            <wsdlFiles>
-                                <wsdlFile>celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline.wsdl</wsdlFile>
-                            </wsdlFiles>
-                            <packageName></packageName>
-                            <vmArgs>
-                                <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
-                            </vmArgs>
-                            <wsdlLocation>https://celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline?wsdl</wsdlLocation>
-                            <staleFile>${project.build.directory}/jaxws/stale/RecepcionComprobantesOffline.stale</staleFile>
-                        </configuration>
-                        <id>wsimport-generate-RecepcionComprobantesOffline</id>
-                        <phase>generate-sources</phase>
-                    </execution>
                     <execution>
                         <goals>
                             <goal>wsimport</goal>
@@ -369,6 +351,24 @@
                             <staleFile>${project.build.directory}/jaxws/stale/AutorizacionComprobantesOffline.stale</staleFile>
                         </configuration>
                         <id>wsimport-generate-AutorizacionComprobantesOffline</id>
+                        <phase>generate-sources</phase>
+                    </execution>
+                    <execution>
+                        <goals>
+                            <goal>wsimport</goal>
+                        </goals>
+                        <configuration>
+                            <wsdlFiles>
+                                <wsdlFile>celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline.wsdl</wsdlFile>
+                            </wsdlFiles>
+                            <packageName></packageName>
+                            <vmArgs>
+                                <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+                            </vmArgs>
+                            <wsdlLocation>https://celcer.sri.gob.ec/comprobantes-electronicos-ws/RecepcionComprobantesOffline?wsdl</wsdlLocation>
+                            <staleFile>${project.build.directory}/jaxws/stale/RecepcionComprobantesOffline.stale</staleFile>
+                        </configuration>
+                        <id>wsimport-generate-RecepcionComprobantesOffline</id>
                         <phase>generate-sources</phase>
                     </execution>
                 </executions>
